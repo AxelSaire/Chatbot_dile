@@ -1,0 +1,19 @@
+const mongoose = require('mongoose');
+
+const MONGO_DB_URI = 'mongodb://127.0.0.1:27017';
+const MONGO_DB_NAME = 'dbRiesgo';
+
+async function connectToDatabase() {
+  try {
+    await mongoose.connect(`${MONGO_DB_URI}/${MONGO_DB_NAME}`, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    console.log('Conectado a MongoDB');
+  } catch (error) {
+    console.error('Error de conexión a MongoDB:', error);
+    process.exit(1); // Salir del proceso si la conexión falla
+  }
+}
+
+module.exports = connectToDatabase;

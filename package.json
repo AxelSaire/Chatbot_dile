@@ -1,0 +1,25 @@
+{
+  "name": "chat_bot_dile_v2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "concurrently \"node api.js\" \"node index.js\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mongodb": "^6.8.0",
+    "mongoose": "^8.5.2",
+    "venom-bot": "^5.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "ws": "3.3.2"
+  }
+}

@@ -1,0 +1,15 @@
+2024/08/02-13:04:48.190 4e0c Reusing MANIFEST C:\Users\LAPTOP\OneDrive\Documentos\Bot\Venom\Chatbot_VenomBot_Dile\tokens\session-name\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2024/08/02-13:04:48.190 4e0c Recovering log #54
+2024/08/02-13:04:48.191 4e0c Reusing old log C:\Users\LAPTOP\OneDrive\Documentos\Bot\Venom\Chatbot_VenomBot_Dile\tokens\session-name\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000054.log 
+2024/08/02-13:04:49.733 4e0c Level-0 table #61: started
+2024/08/02-13:04:49.735 4e0c Level-0 table #61: 34877 bytes OK
+2024/08/02-13:04:49.736 4e0c Delete type=0 #54
+2024/08/02-13:04:49.737 4e0c Manual compaction at level-0 from '\x00\x19\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00\x1a\x00\x00\x00' @ 0 : 0; will stop at (end)
+2024/08/02-13:04:50.988 4b58 Compacting 1@1 + 2@2 files
+2024/08/02-13:04:51.040 4b58 Generated table #62@1: 50374 keys, 2209914 bytes
+2024/08/02-13:04:51.055 4b58 Generated table #63@1: 21131 keys, 399896 bytes
+2024/08/02-13:04:51.056 4b58 Compacted 1@1 + 2@2 files => 2609810 bytes
+2024/08/02-13:04:51.056 4b58 compacted to: files[ 0 0 2 0 0 0 0 ]
+2024/08/02-13:04:51.057 4b58 Delete type=2 #57
+2024/08/02-13:04:51.057 4b58 Delete type=2 #58
+2024/08/02-13:04:51.057 4b58 Delete type=2 #61
