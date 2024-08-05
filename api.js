@@ -57,8 +57,8 @@ app.post('/api-json-user/api/buscarSocio', async (req, res) => {
     const { dni} = req.body;
 
     try {
-        const database = client.db("db_bot");
-        const collection = database.collection("mi_collections");
+        const database = client.db("dbRiesgo");
+        const collection = database.collection("Socio");
 
         // Convertir dni a entero
         const dniInt = parseInt(dni, 10);
@@ -180,6 +180,105 @@ app.post('/api-json-user/api/perfilsocios', async (req, res) => {
         await client.close();
     }
 });
+// app.post('/api/saveResponse', async (req, res) => {
+//     const { numero } = req.body;
+
+//     if (!numero) {
+//         return res.status(400).json({ success: false, message: 'Falta el número de teléfono' });
+//     }
+
+//     try {
+//         const database = client.db('dbRiesgo');
+//         const collection = database.collection('messages');
+
+//         const messageDocument = {
+//             numero: numero,
+//             timestamp: new Date()
+//         };
+
+//         const result = await collection.insertOne(messageDocument);
+
+//         if (result.acknowledged) {
+//             console.log('Número guardado correctamente', numero);
+//         } else {
+//             res.status(500).json({ success: false, message: 'Error al guardar el número' });
+//         }
+//     } catch (error) {
+//         console.error('Error al guardar el número:', error);
+//         res.status(500).json({ success: false, message: 'Error interno del servidor' });
+//     }
+// });
+
+app.post('/api/saveMessage', async (req, res) => {
+    const { numero, mensaje, tipo_dato } = req.body;
+
+    console.log('Este es el tipo de datos: ', tipo_dato);
+    if (!numero || !mensaje || !tipo_dato) {
+        return res.status(400).json({ success: false, message: 'Falta el número de teléfono, el mensaje o el tipo de dato' });
+    }
+
+    try {
+        const database = client.db('dbRiesgo');
+        const collection = database.collection('messages');
+
+        // Obtener la fecha y la hora actuales
+        const now = new Date();
+        const formattedDate = now.toLocaleString('es-ES', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+        });
+
+        // Verificar si el número ya está en la base de datos
+        const existingEntry = await collection.findOne({ numero: numero});
+
+        if (existingEntry) {
+            // Si el número ya existe, actualizar el mensaje con la clave dinámica
+            await collection.updateOne(
+                { numero: numero },
+                { $set: { [tipo_dato]: mensaje, timestamp: formattedDate } } // Guardar solo la fecha y hora formateadas
+            );
+
+            return res.json({ success: true, message: 'Número ya existente, mensaje actualizado', data: existingEntry });
+        }
+
+        // Si el número no existe, insertamos un nuevo documento con la clave dinámica
+        const messageDocument = {
+            numero: numero,
+            [tipo_dato]: mensaje, // Usar el valor de tipo_dato como clave
+            timestamp: formattedDate // Guardar solo la fecha y hora formateadas
+        };
+
+        const result = await collection.insertOne(messageDocument);
+
+        if (result.acknowledged) {
+            res.json({ success: true, message: 'Número y mensaje guardados correctamente', data: messageDocument });
+        } else {
+            res.status(500).json({ success: false, message: 'Error al guardar el mensaje y el número' });
+        }
+    } catch (error) {
+        console.error('Error al guardar el número y mensaje:', error);
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+});
+
+function findAvailablePort(startPort) {
+    return new Promise((resolve, reject) => {
+      const server = app.listen(startPort, () => {
+        const { port } = server.address();
+        server.close(() => {
+          resolve(port);
+        });
+      });
+  
+      server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+          resolve(findAvailablePort(startPort + 1));
+        } else {
+          reject(err);
+        }
+      });
+    });
+  }
 app.post('/api/saveResponse', async (req, res) => {
     const { userId, response } = req.body;
 
@@ -209,25 +308,6 @@ app.post('/api/saveResponse', async (req, res) => {
         res.status(500).json({ success: false, message: 'Error interno del servidor' });
     }
 });
-function findAvailablePort(startPort) {
-    return new Promise((resolve, reject) => {
-      const server = app.listen(startPort, () => {
-        const { port } = server.address();
-        server.close(() => {
-          resolve(port);
-        });
-      });
-  
-      server.on('error', (err) => {
-        if (err.code === 'EADDRINUSE') {
-          resolve(findAvailablePort(startPort + 1));
-        } else {
-          reject(err);
-        }
-      });
-    });
-  }
-  
   connectToDatabase().then((connected) => {
     if (connected) {
       findAvailablePort(3001).then((port) => {
