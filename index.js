@@ -23,7 +23,23 @@ const verificarDNI = async (dni, ape_pat) => {
         return false;
     }
 };
-
+// const guardarNumero = async (numero) => {
+//     try {
+//         const response = await axios.post('http://localhost:3001/api/saveResponse', { numero });
+//         return response.data;
+//     } catch (error) {
+//         console.error('Error al guardar el número:', error);
+//         return { success: false, message: 'Error al guardar el número' };
+//     }
+// };
+const guardarmensaje = async (numero,mensaje,tipo_dato) =>{
+    try{
+        const renponse = await axios.post('http://localhost:3001/api/saveMessage', {numero,mensaje,tipo_dato});
+    }catch(error){
+        console.error('No se pudo guardar el mensaje:', error);
+        return {success:false, message: 'Error al guardar el mensaje'}
+    }
+}
 const GetPerfilRiesgo = async (CUOTA_FIJA, TEA_INTERES, MONTO_PRESTAMO, EDAD) => {
     try {
         const response = await axios.post('http://localhost:3001/api-json-user/api/miPerfil', {
@@ -39,7 +55,7 @@ const GetPerfilRiesgo = async (CUOTA_FIJA, TEA_INTERES, MONTO_PRESTAMO, EDAD) =>
 // Funciones de API 
 const verificarDNISocio = async (dni) => {
     try {
-        const response = await axios.post('https://f8aa-38-252-219-16.ngrok-free.app/api-sql/api/verifi-socio', { dni });
+        const response = await axios.post('http://localhost:3001/api-json-user/api/buscarSocio', { dni }); //
         return response.data;
     } catch (error) {
         console.error('Error al verificar el DNI:', error);
@@ -132,6 +148,8 @@ let userStates = {};
 const mainFlow = {
     mainMenu: async (client, message) => {
         await client.sendText(message.from, `Bienvenido soy ✨ *ESTRELLA* ✨ un bot que te ayudará a resolver tus dudas\n\n¿Escriba qué tipo de persona eres?\n👉 *1* Para *Socio activo*.   🤝\n👉 *2* Para *Aún no soy socio*.  👤\n👉 *3* Para *Colaborador*.    👨‍💼`);
+        const senderNumber = message.from;
+        // await guardarNumero(senderNumber);
     }
 };
 
@@ -147,14 +165,16 @@ const socioActivoFlow = {
     handleVerificacionSocio: async (client, message, userState) => {
         const dni = message.body.trim();
         const response = await verificarDNISocio(dni);
+        console.log(response)
 
-        if (response && response.length > 0 && response[0].status === true) {
-            const socio = response[0];
-            await client.sendText(message.from, `✅ DNI verificado. Bienvenido/a, ${socio.NOMBRE} ${socio.APE_PAT} ${socio.APE_MAT}`);
-            await client.sendText(message.from, `Datos del socio:\nNúmero de documento: ${socio.NRO_DI.trim()}\nRazón social: ${socio.RAZON_SOCIAL}`);
+        if (response && response.success === true) {
+            const socio = response.data.SOCIO;
+            await client.sendText(message.from, `✅ DNI verificado. Bienvenido/a, ${socio}`);
+            await client.sendText(message.from, `Datos del socio:\nNúmero de documento: ${socio}\nRazón social: ${socio}`);
             await client.sendText(message.from, '¿Qué deseas hacer ahora?\n\n👉Escribe *cal* para ver tu score crediticio 📈\nEscribe *ver* para ver tus cuotas 👀\n👉Escribe *riesgo* para obtener tu perfil de riesgo 📊\n👉Escribe *menu* para volver al menú principal\n👉Escribe *salir* para terminar');
             userState.step = 'socio_verificado';
             userState.dni = dni;
+            await guardarmensaje(message.from,userState.dni,'ape_pat');
         } else {
             await client.sendText(message.from, 'No se pudo verificar el DNI o no es un socio activo. ❌');
             await client.sendText(message.from, 'Por favor, intente nuevamente o escriba *salir* para volver al menú principal.');
@@ -190,7 +210,7 @@ const socioActivoFlow = {
         switch (message.body) {
             case '1':
                 await client.sendText(message.from, 'Consultando tu cuota actual... 📅');
-                await client.sendText(message.from, 'Nuemro de cuotas 2 ⚠️');
+                await client.sendText(message.from, 'Número de cuotas 2 ⚠️');
                 await client.sendText(message.from, 'Tu cuota a la fecha de hoy \n(08/07/2024) es: s/250');
                 break;
             case '2':
@@ -212,6 +232,7 @@ const socioActivoFlow = {
             case 'esperando_edad':
                 if (!isNaN(message.body.trim())) {
                     userState.edad = message.body.trim();
+                    await guardarmensaje(message.from,userState.edad,'edad')
                     await client.sendText(message.from, 'Por favor, selecciona tu tipo de vivienda:\n1. ALQUILADA\n2. FAMILIAR\n3. PROPIA');
                     userState.step = 'esperando_tipo_vivienda';
                 } else {
@@ -221,6 +242,7 @@ const socioActivoFlow = {
             case 'esperando_tipo_vivienda':
                 if (['1', '2', '3'].includes(message.body.trim())) {
                     userState.tipo_vivienda = message.body.trim();
+                    await guardarmensaje(message.from, userState.tipo_vivienda,'tipo_vivienda')
                     await client.sendText(message.from, 'Por favor, selecciona tu estado civil:\n1. Casado (a)\n2. Conviviente\n3. Divorciado (a)\n4. Separado (a)\n5. Soltero (a)\n6. Viudo (a)');
                     userState.step = 'esperando_estado_civil';
                 } else {
@@ -230,6 +252,7 @@ const socioActivoFlow = {
             case 'esperando_estado_civil':
                 if (['1', '2', '3', '4', '5', '6'].includes(message.body.trim())) {
                     userState.estado_civil = message.body.trim();
+                    await guardarmensaje(message.from, userState.estado_civil,'estado_civil')
                     await client.sendText(message.from, 'Por favor, selecciona tu giro:\n1. ABARROTES\n2. AUTOS\n3. BOTICA\n4. CARPINTERIA\n5. COMERC. AL\n6. COMERC. ANI\n7. COMERC. BEBI\n8. COMERC. FER CONS\n9. COMERC. NO AL\n10. COMERC. ROPA\n11. OFICIO\n12. OFICIO. CONS\n13. OTROS\n14. PROFESIONAL\n15. RESTAURANTE\n16. SERVICIOS');
                     userState.step = 'esperando_giro';
                 } else {
@@ -239,8 +262,10 @@ const socioActivoFlow = {
             case 'esperando_giro':
                 if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16'].includes(message.body.trim())) {
                     userState.giro = message.body.trim();
+                    await guardarmensaje(message.from, userState.giro, 'giro')
                     const { edad, tipo_vivienda, estado_civil, giro } = userState;
                     const perfilRiesgo = await GetPerfilRiesgoSocio(edad, tipo_vivienda, estado_civil, giro);
+                    console.log(message.from);
                     if (perfilRiesgo) {
                         await client.sendText(message.from, `Tu perfil de riesgo es: ${perfilRiesgo}`);
                     } else {
@@ -544,7 +569,9 @@ const colaboradorFlow = {
                 await client.sendText(message.from, '🔐Es necesario que comprobemos tu identidad:\n\n¿Cuál es tu apellido paterno?');
                 return;
             }
+
             userState.ape_pat = message.body;
+            // await guardarmensaje(message.from,userState.ape_pat,'ape_pat');
             userState.step = 'dni';
             await client.sendText(message.from, '¿Cuál es tu DNI? \n\n(O escribe "volver" para reingresar tus datos, o "salir" para terminar)');
         } else if (userState.step === 'dni') {
@@ -554,8 +581,8 @@ const colaboradorFlow = {
                 return;
             }
             userState.dni = message.body;
+            //await guardarmensaje(message.from,userState.dni,'dni');
             const response = await verificarDNI(userState.dni, userState.ape_pat);
-            //await agregar(userState.dni, userState.ape_pat);
             console.log('Respuesta de la API:', JSON.stringify(response, null, 2));
             // if (response && response.length > 0 && response[0].status === true && response[0].message === 'correcto')
             if (response && response.success === true) {
